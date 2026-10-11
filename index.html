@@ -1,12 +1,20 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Чеклист комбинаций</title>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#e9e9ec" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#141517" media="(prefers-color-scheme: dark)">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html,body{height:100%}body{margin:0;font-size:14px}[hidden]{display:none!important}</style>
+<title>Checklist</title>
 <style>
-/* Layout: one narrow column of 14 tappable rows, 4 colour cells each, sticky progress bar on top. */
+/* Layout: one narrow column. Sticky header holds two folder tabs (Parking, Hotel) and a progress bar. */
 :root {
   --bg: #e9e9ec;
   --fg: #17181c;
   --muted: #5d6068;
   --gap: #8c8e94;
+  --rule: #c9cace;
   --panel: #f6f6f8;
   --line: #17181c;
   --focus: #1a4fd6;
@@ -19,13 +27,13 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #141517; --fg: #ececf0; --muted: #9a9ca4; --gap: #6f7178;
+    --bg: #141517; --fg: #ececf0; --muted: #9a9ca4; --gap: #6f7178; --rule: #34363b;
     --panel: #1d1e21; --line: #ffffff; --focus: #7fa2ff;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #141517; --fg: #ececf0; --muted: #9a9ca4; --gap: #6f7178;
+  --bg: #141517; --fg: #ececf0; --muted: #9a9ca4; --gap: #6f7178; --rule: #34363b;
   --panel: #1d1e21; --line: #ffffff; --focus: #7fa2ff;
   color-scheme: dark;
 }
@@ -48,14 +56,27 @@ header {
   display: grid;
   gap: 10px;
 }
-.head-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
-h1 { margin: 0; font-size: 1.05rem; font-weight: 800; letter-spacing: 0.01em; }
-.count { font-family: var(--font-num); font-size: 0.95rem; font-variant-numeric: tabular-nums; color: var(--muted); }
-.count b { color: var(--fg); font-weight: 700; }
+.tabs { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--gap); border-radius: 6px; overflow: hidden; }
+.tab {
+  font: inherit; font-size: 0.95rem; font-weight: 800; letter-spacing: 0.02em;
+  padding: 11px 12px;
+  background: var(--panel);
+  color: var(--fg);
+  border: 0;
+  cursor: pointer;
+}
+.tab + .tab { border-left: 1px solid var(--gap); }
+.tab[aria-selected="true"] { background: var(--fg); color: var(--bg); }
+.tab:focus-visible { outline: 3px solid var(--focus); outline-offset: -3px; }
+.prog { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px; }
 .bar { height: 6px; background: var(--gap); border-radius: 3px; overflow: hidden; }
 .bar > i { display: block; height: 100%; width: 0; background: var(--fg); transition: width .25s ease; }
+.count { font-family: var(--font-num); font-size: 0.9rem; font-variant-numeric: tabular-nums; color: var(--muted); }
+.count b { color: var(--fg); font-weight: 700; }
 
-ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+/* Parking */
+ul { list-style: none; margin: 0; padding: 0; }
+.rows { display: grid; gap: 6px; }
 .row {
   position: relative;
   display: grid;
@@ -73,13 +94,7 @@ ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
   -webkit-tap-highlight-color: transparent;
 }
 .row:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; border-radius: 2px; }
-.n {
-  font-family: var(--font-num);
-  font-size: 0.78rem;
-  font-variant-numeric: tabular-nums;
-  color: var(--muted);
-  text-align: right;
-}
+.n { font-family: var(--font-num); font-size: 0.78rem; font-variant-numeric: tabular-nums; color: var(--muted); text-align: right; }
 .cells {
   position: relative;
   display: grid;
@@ -98,8 +113,7 @@ ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
   content: "";
   position: absolute;
   left: 6px; right: 6px; top: 50%;
-  height: 4px;
-  margin-top: -2px;
+  height: 4px; margin-top: -2px;
   background: var(--line);
   border-radius: 2px;
   transform: scaleX(0);
@@ -109,9 +123,75 @@ ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
 .row[aria-pressed="true"] .cells { opacity: .28; filter: saturate(.55) brightness(.7); }
 .row[aria-pressed="true"] .cells::after { transform: scaleX(1); }
 .row[aria-pressed="true"] .n { text-decoration: line-through; }
-@media (hover: hover) {
-  .row:hover .cells { outline: 2px solid var(--fg); outline-offset: 0; }
+@media (hover: hover) { .row:hover .cells { outline: 2px solid var(--fg); } }
+
+/* Hotel */
+.start { margin: 0 0 14px; padding: 12px 14px; background: var(--panel); border: 1px solid var(--rule); font-size: 0.85rem; line-height: 1.5; color: var(--muted); }
+.start b { color: var(--fg); font-family: var(--font-num); font-weight: 500; }
+.cards { display: grid; gap: 16px; }
+.card { background: var(--panel); border: 1px solid var(--rule); }
+.card-h { display: flex; align-items: baseline; gap: 12px; padding: 12px 14px 4px; }
+.idx { font-family: var(--font-num); font-size: 0.8rem; color: var(--muted); }
+.code { font-family: var(--font-num); font-size: 1.6rem; font-weight: 500; letter-spacing: 0.12em; font-variant-numeric: tabular-nums; }
+.clicks { margin-left: auto; font-family: var(--font-num); font-size: 0.8rem; color: var(--muted); }
+.meta { margin: 0; padding: 0 14px 10px; font-size: 0.8rem; color: var(--muted); }
+.step {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 50px;
+  padding: 10px 14px;
+  border-top: 1px solid var(--rule);
 }
+.w { font-size: 0.85rem; font-weight: 700; }
+.mv { display: flex; align-items: center; gap: 8px; font-family: var(--font-num); font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+.mv svg { flex: none; }
+.ft { font-family: var(--font-num); font-size: 0.85rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.foot { margin: 0; padding: 10px 14px; border-top: 1px solid var(--rule); font-size: 0.8rem; color: var(--muted); }
+.foot b { color: var(--fg); font-family: var(--font-num); font-weight: 500; }
+
+/* Practice lock */
+.sim { margin-top: 28px; display: grid; gap: 12px; }
+.sim-h { margin: 0; font-size: 0.75rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.lock { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.wheel {
+  position: relative;
+  display: grid; gap: 2px; justify-items: center;
+  padding: 10px 0 12px;
+  background: var(--panel);
+  color: var(--fg);
+  border: 2px solid var(--rule);
+  font-family: var(--font-num);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.wheel .t, .wheel .b { font-size: 0.95rem; color: var(--muted); opacity: .55; }
+.wheel .c { font-size: 2.1rem; font-weight: 500; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.wheel[aria-pressed="true"] { border-color: var(--fg); }
+.wheel[aria-pressed="true"]::after { content: ""; position: absolute; left: 25%; right: 25%; bottom: 4px; height: 3px; background: var(--fg); }
+.wheel:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.sim-info { display: flex; justify-content: space-between; gap: 12px; font-family: var(--font-num); font-size: 0.85rem; color: var(--muted); min-height: 1.3em; }
+.sim-info b { color: var(--fg); font-weight: 500; }
+.pad { display: grid; grid-template-columns: repeat(3, 72px); grid-template-areas: ". w ." "a s d"; gap: 6px; justify-content: center; }
+.key {
+  display: grid; justify-items: center; gap: 1px;
+  padding: 8px 0;
+  font: inherit; color: var(--fg);
+  background: var(--panel);
+  border: 1px solid var(--gap);
+  border-radius: 6px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.key b { font-family: var(--font-num); font-size: 1.1rem; font-weight: 500; }
+.key span { font-size: 0.7rem; color: var(--muted); }
+.key:active { background: var(--fg); color: var(--bg); }
+.key:active span { color: var(--bg); }
+.key:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.key[data-act="up"] { grid-area: w; } .key[data-act="left"] { grid-area: a; }
+.key[data-act="down"] { grid-area: s; } .key[data-act="right"] { grid-area: d; }
+.sim-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 
 footer { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-top: 18px; }
 .hint { color: var(--muted); font-size: 0.8rem; margin: 0; }
@@ -123,91 +203,228 @@ footer { display: flex; justify-content: space-between; align-items: center; gap
   border: 1px solid var(--gap);
   border-radius: 6px;
   cursor: pointer;
+  white-space: nowrap;
 }
 .reset:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 .reset.arm { background: var(--fg); color: var(--bg); border-color: var(--fg); }
-@media (prefers-reduced-motion: reduce) {
-  .cells, .cells::after, .bar > i { transition: none; }
-}
+@media (prefers-reduced-motion: reduce) { .cells, .cells::after, .bar > i { transition: none; } }
 </style>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&family=Manrope:wght@700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@700;800&display=swap">
 
+</head>
+<body>
 <div class="wrap">
   <header>
-    <div class="head-row">
-      <h1>Чеклист комбинаций</h1>
+    <div class="tabs" role="tablist" aria-label="Folders">
+      <button class="tab" id="tab-parking" role="tab" aria-controls="panel-parking" aria-selected="true" type="button">Parking</button>
+      <button class="tab" id="tab-hotel" role="tab" aria-controls="panel-hotel" aria-selected="false" type="button">Hotel</button>
+    </div>
+    <div class="prog" id="prog">
+      <div class="bar" aria-hidden="true"><i id="fill"></i></div>
       <div class="count" id="count" aria-live="polite"></div>
     </div>
-    <div class="bar" aria-hidden="true"><i id="fill"></i></div>
   </header>
-  <ul id="list"></ul>
-  <footer>
-    <p class="hint">Нажми на ряд, чтобы отметить. Ещё раз, чтобы снять.</p>
-    <button class="reset" id="reset" type="button">Сбросить</button>
-  </footer>
+
+  <section id="panel-parking" role="tabpanel" aria-labelledby="tab-parking">
+    <ul class="rows" id="list"></ul>
+    <footer>
+      <p class="hint">Tap a row to cross it out. Tap again to undo.</p>
+      <button class="reset" id="reset-parking" type="button">Reset</button>
+    </footer>
+  </section>
+
+  <section id="panel-hotel" role="tabpanel" aria-labelledby="tab-hotel" hidden>
+    <p class="start">Lock starts on <b>00000</b> with the cursor on wheel 1. Try the codes in this order. Worst case is <b>46</b> clicks, if the answer is the last code.</p>
+    <div class="cards" id="cards"></div>
+
+    <section class="sim" aria-labelledby="sim-h">
+      <h2 class="sim-h" id="sim-h">Practice lock</h2>
+      <div class="lock" id="lock"></div>
+      <div class="sim-info"><span>Clicks <b id="sim-clicks">0</b></span><span id="sim-match" aria-live="polite"></span></div>
+      <div class="pad">
+        <button class="key" type="button" data-act="up" aria-label="Digit up"><b>W</b><span>up</span></button>
+        <button class="key" type="button" data-act="left" aria-label="Cursor left"><b>A</b><span>left</span></button>
+        <button class="key" type="button" data-act="down" aria-label="Digit down"><b>S</b><span>down</span></button>
+        <button class="key" type="button" data-act="right" aria-label="Cursor right"><b>D</b><span>right</span></button>
+      </div>
+      <div class="sim-foot">
+        <p class="hint">Click the page first, then use W / S for the digit and A / D for the cursor. Arrow keys work too. Up goes 0 → 9, down goes 0 → 1.</p>
+        <button class="reset" id="reset-lock" type="button">Reset lock</button>
+      </div>
+    </section>
+  </section>
 </div>
 
 <script>
 (function () {
+  /* ---------- storage ---------- */
+  function load(k, d) { try { var v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } }
+  function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+
+  var K_PARK = "combo-checklist-v1", K_TAB = "checklist-tab-v1";
+  var parkDone = load(K_PARK, {});
+  var tab = load(K_TAB, "parking");
+  if (tab !== "parking" && tab !== "hotel") tab = "parking";
+
+  /* ---------- Parking ---------- */
   var ROWS = ["RGBB","RBBY","RGBY","RRBB","GBBY","RRGB","RRBY","RRGY","RRRG","RRRB","RRRY","RBBB","GBBB","BBBY"];
-  var NAMES = { R: "красный", G: "зелёный", B: "синий", Y: "жёлтый" };
-  var KEY = "combo-checklist-v1";
-  var done = {};
-  try { done = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { done = {}; }
-
-  function save() { try { localStorage.setItem(KEY, JSON.stringify(done)); } catch (e) {} }
-
+  var NAMES = { R: "red", G: "green", B: "blue", Y: "yellow" };
   var list = document.getElementById("list");
-  var countEl = document.getElementById("count");
-  var fill = document.getElementById("fill");
-  var buttons = [];
-
+  var parkBtns = [];
   ROWS.forEach(function (row, i) {
     var li = document.createElement("li");
     var b = document.createElement("button");
     b.type = "button";
     b.className = "row";
-    var names = row.split("").map(function (c) { return NAMES[c]; }).join(", ");
-    b.setAttribute("aria-label", "Ряд " + (i + 1) + ": " + names);
+    b.setAttribute("aria-label", "Row " + (i + 1) + ": " + row.split("").map(function (c) { return NAMES[c]; }).join(", "));
     b.innerHTML = '<span class="n">' + (i + 1) + '</span><span class="cells">' +
       row.split("").map(function (c) { return '<span class="cell ' + c + '"></span>'; }).join("") + '</span>';
     b.addEventListener("click", function () {
-      if (done[i]) delete done[i]; else done[i] = 1;
-      save(); render();
+      if (parkDone[i]) delete parkDone[i]; else parkDone[i] = 1;
+      save(K_PARK, parkDone); render();
     });
     li.appendChild(b);
     list.appendChild(li);
-    buttons.push(b);
+    parkBtns.push(b);
   });
 
+  /* ---------- Hotel ---------- */
+  var UP = '<svg viewBox="0 0 10 10" width="11" height="11" aria-hidden="true"><path d="M5 1 9.2 9H.8z" fill="currentColor"/></svg>';
+  var SKIP = '<svg viewBox="0 0 10 10" width="11" height="11" aria-hidden="true"><path d="M1 5h7M5.5 2.2 8.3 5 5.5 7.8" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  var DOWN = '<svg viewBox="0 0 10 10" width="11" height="11" aria-hidden="true"><path d="M5 9 .8 1h8.4z" fill="currentColor"/></svg>';
+  // steps are [wheel, from, to, direction, amount]
+  var LOCK = [
+    { code: "05938", dir: "right", note: "Cursor is on wheel 1. Press right after each wheel.", clicks: 15, total: 15,
+      steps: [[1,0,0,"skip",0],[2,0,5,"down",5],[3,0,9,"up",1],[4,0,3,"down",3],[5,0,8,"up",2]] },
+    { code: "17564", dir: "left", note: "Cursor is on wheel 5. Press left after each wheel.", clicks: 18, total: 33,
+      steps: [[5,8,4,"up",4],[4,3,6,"down",3],[3,9,5,"up",4],[2,5,7,"down",2],[1,0,1,"down",1]] },
+    { code: "89472", dir: "right", note: "Cursor is on wheel 1. Press right after each wheel.", clicks: 13, total: 46,
+      steps: [[1,1,8,"up",3],[2,7,9,"down",2],[3,5,4,"up",1],[4,6,7,"down",1],[5,4,2,"up",2]] }
+  ];
+  var cards = document.getElementById("cards");
+  LOCK.forEach(function (c, ci) {
+    var sec = document.createElement("section");
+    sec.className = "card";
+    var h = '<div class="card-h"><span class="idx">' + (ci + 1) + '</span><span class="code">' + c.code +
+      '</span><span class="clicks">' + c.clicks + ' clicks</span></div><p class="meta">' + c.note + '</p>';
+    sec.innerHTML = h;
+    var ul = document.createElement("ul");
+    c.steps.forEach(function (s, si) {
+      var li = document.createElement("li");
+      var b = document.createElement("div");
+      b.className = "step";
+      var skip = s[3] === "skip";
+      b.innerHTML = '<span class="w">Wheel ' + s[0] + '</span><span class="mv">' + (skip ? SKIP : s[3] === "up" ? UP : DOWN) +
+        (skip ? 'skip' : s[3] + ' ' + s[4]) + '</span><span class="ft">' + (skip ? 'stays ' + s[1] : s[1] + ' → ' + s[2]) + '</span>';
+      li.appendChild(b);
+      ul.appendChild(li);
+    });
+    sec.appendChild(ul);
+    var f = document.createElement("p");
+    f.className = "foot";
+    f.innerHTML = 'Now try <b>' + c.code + '</b>. Clicks so far: <b>' + c.total + '</b>';
+    sec.appendChild(f);
+    cards.appendChild(sec);
+  });
+
+  /* ---------- render ---------- */
+  var countEl = document.getElementById("count");
+  var fill = document.getElementById("fill");
   function render() {
-    var n = 0;
-    buttons.forEach(function (b, i) {
-      var on = !!done[i];
-      if (on) n++;
+    var p = 0;
+    parkBtns.forEach(function (b, i) {
+      var on = !!parkDone[i]; if (on) p++;
       b.setAttribute("aria-pressed", on ? "true" : "false");
     });
-    countEl.innerHTML = "<b>" + n + "</b> / " + ROWS.length;
-    fill.style.width = (n / ROWS.length * 100) + "%";
+    countEl.innerHTML = "<b>" + p + "</b> / " + ROWS.length;
+    fill.style.width = (p / ROWS.length * 100) + "%";
   }
 
-  var reset = document.getElementById("reset");
-  var timer = null;
-  reset.addEventListener("click", function () {
-    if (!reset.classList.contains("arm")) {
-      reset.classList.add("arm");
-      reset.textContent = "Точно сбросить?";
-      timer = setTimeout(disarm, 3000);
-      return;
-    }
-    clearTimeout(timer);
-    done = {};
-    save(); render(); disarm();
-  });
-  function disarm() { reset.classList.remove("arm"); reset.textContent = "Сбросить"; }
+  /* ---------- tabs ---------- */
+  var tabs = { parking: document.getElementById("tab-parking"), hotel: document.getElementById("tab-hotel") };
+  var panels = { parking: document.getElementById("panel-parking"), hotel: document.getElementById("panel-hotel") };
+  function setTab(name) {
+    tab = name;
+    Object.keys(tabs).forEach(function (k) {
+      tabs[k].setAttribute("aria-selected", k === name ? "true" : "false");
+      panels[k].hidden = k !== name;
+    });
+    document.getElementById("prog").hidden = name !== "parking";
+    save(K_TAB, name);
+    render();
+  }
+  tabs.parking.addEventListener("click", function () { setTab("parking"); });
+  tabs.hotel.addEventListener("click", function () { setTab("hotel"); });
 
-  render();
+  /* ---------- resets (two taps) ---------- */
+  function armed(btn, action) {
+    var timer = null;
+    function disarm() { btn.classList.remove("arm"); btn.textContent = "Reset"; }
+    btn.addEventListener("click", function () {
+      if (!btn.classList.contains("arm")) {
+        btn.classList.add("arm"); btn.textContent = "Tap again to reset";
+        timer = setTimeout(disarm, 3000); return;
+      }
+      clearTimeout(timer); action(); disarm();
+    });
+  }
+  armed(document.getElementById("reset-parking"), function () { parkDone = {}; save(K_PARK, parkDone); render(); });
+
+  /* ---------- Practice lock ---------- */
+  var lockEl = document.getElementById("lock");
+  var digits = [0,0,0,0,0], cur = 0, clicks = 0;
+  var wheels = [];
+  for (var wi = 0; wi < 5; wi++) {
+    (function (i) {
+      var w = document.createElement("button");
+      w.type = "button";
+      w.className = "wheel";
+      w.setAttribute("aria-label", "Wheel " + (i + 1));
+      w.innerHTML = '<span class="t"></span><span class="c"></span><span class="b"></span>';
+      w.addEventListener("click", function () { if (cur !== i) { clicks += Math.abs(cur - i); cur = i; drawLock(); } });
+      lockEl.appendChild(w);
+      wheels.push(w);
+    })(wi);
+  }
+  function drawLock() {
+    wheels.forEach(function (w, i) {
+      var d = digits[i];
+      w.children[0].textContent = (d + 9) % 10;
+      w.children[1].textContent = d;
+      w.children[2].textContent = (d + 1) % 10;
+      w.setAttribute("aria-pressed", i === cur ? "true" : "false");
+    });
+    document.getElementById("sim-clicks").textContent = clicks;
+    var shown = digits.join(""), at = LOCK.map(function (c) { return c.code; }).indexOf(shown);
+    document.getElementById("sim-match").innerHTML = at >= 0 ? "Shows <b>" + shown + "</b> (code " + (at + 1) + ")" : "";
+  }
+  function act(a) {
+    if (a === "up") { digits[cur] = (digits[cur] + 9) % 10; clicks++; }
+    else if (a === "down") { digits[cur] = (digits[cur] + 1) % 10; clicks++; }
+    else if (a === "left") { if (cur > 0) { cur--; clicks++; } }
+    else if (a === "right") { if (cur < 4) { cur++; clicks++; } }
+    drawLock();
+  }
+  Array.prototype.forEach.call(document.querySelectorAll(".key"), function (k) {
+    k.addEventListener("click", function () { act(k.getAttribute("data-act")); });
+  });
+  document.getElementById("reset-lock").addEventListener("click", function () {
+    digits = [0,0,0,0,0]; cur = 0; clicks = 0; drawLock();
+  });
+  var KEYMAP = { w: "up", s: "down", a: "left", d: "right", arrowup: "up", arrowdown: "down", arrowleft: "left", arrowright: "right" };
+  document.addEventListener("keydown", function (e) {
+    if (tab !== "hotel" || e.ctrlKey || e.metaKey || e.altKey) return;
+    var t = e.target;
+    if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+    var a = KEYMAP[String(e.key).toLowerCase()];
+    if (!a) return;
+    e.preventDefault();
+    if (!e.repeat) act(a);
+  });
+  drawLock();
+
+  setTab(tab);
 })();
 </script>
-
-</body></html>
+</body>
+</html>
